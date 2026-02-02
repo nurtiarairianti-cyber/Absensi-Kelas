@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABSENSI KELAS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="container-navbar">
+    <div class="navbar-logo">
+        <div>
+            <h1>ABSENSI KELAS</h1>
+            <span></span>
+        </div>
+    </div>
+    <div class="navbar-nav">
+        <a onclick="showPage('beranda')">Beranda</a>
+        <a onclick="showPage('login')">Login</a>
+        <a onclick="showPage('profil')">Profil</a>
+        <a onclick="showPage('presensi')">Presensi</a>
+    </div>
+</nav>
+
+<main class="container">
+
+<!-- BERANDA -->
+<!-- BERANDA -->
+<div class="beranda" id="berandaPage">
+    <div class="beranda-card">
+        <div class="beranda-text">
+            <h1>SELAMAT DATANG DI WEBSITE</h1>
+            <h2>11 TJKT 1</h2>
+            <h3>SMK NEGERI 1 SORONG</h3>
+            <p>Presensi Siswa/Siswi</p>
+        </div>
+
+        <div class="beranda-logo">
+            <img src="img/logo.tjkt.png" alt="Logo TJKT">
+        </div>
+    </div>
+</div>
+<!-- LOGIN -->
+<div class="login-card" id="loginPage">
+    <h2>Login Murid</h2>
+    <input type="text" id="nama" placeholder="Nama">
+    <input type="text" id="kelas" placeholder="Kelas">
+    <button class="primary" onclick="login()">Login</button>
+</div>
+
+<!-- PROFIL -->
+<div class="login-card" id="profilPage">
+    <h2>Profil</h2>
+    <p id="profilNama"></p>
+    <p id="profilKelas"></p>
+    <button class="primary" onclick="logout()">Logout</button>
+</div>
+
+<!-- PRESENSI -->
+<div class="login-card" id="presensiPage">
+    <h2>Presensi</h2>
+    <select id="status">
+        <option value="">-- Pilih Kehadiran --</option>
+        <option>Hadir</option>
+        <option>Izin</option>
+        <option>Sakit</option>
+    </select>
+    <button class="primary" onclick="simpanPresensi()">Simpan Presensi</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>Kelas</th>
+                <th>Tanggal</th>
+                <th>Status</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="tabelPresensiTbody"></tbody>
+    </table>
+</div>
+
+</main>
+
+<script>
+const pages = ["beranda","login","profil","presensi"];
+let dataPresensi = JSON.parse(localStorage.getItem("presensi")) || [];
+
+function showPage(page){
+    pages.forEach(p=>{
+        document.getElementById(p+"Page").style.display="none";
+    });
+
+    if(page==="presensi" && !localStorage.getItem("nama")){
+        alert("Silakan login dulu!");
+        page="login";
+    }
+
+    document.getElementById(page+"Page").style.display="block";
+
+    if(page==="profil"){
+        profilNama.innerText="Nama: "+localStorage.getItem("nama");
+        profilKelas.innerText="Kelas: "+localStorage.getItem("kelas");
+    }
+    if(page==="presensi") tampilkanPresensi();
+}
+
+function login(){
+    const nama = document.getElementById("nama").value;
+    const kelas = document.getElementById("kelas").value;
+
+    if(!nama || !kelas){
+        alert("Lengkapi data!");
+        return;
+    }
+
+    localStorage.setItem("nama", nama);
+    localStorage.setItem("kelas", kelas);
+    showPage("presensi");
+}
+
+function logout(){
+    localStorage.clear();
+    showPage("login");
+}
+
+function simpanPresensi(){
+    const status=document.getElementById("status").value;
+    if(!status) return alert("Pilih status!");
+    dataPresensi.push({
+        nama:localStorage.getItem("nama"),
+        kelas:localStorage.getItem("kelas"),
+        tanggal:new Date().toLocaleDateString(),
+        status
+    });
+    localStorage.setItem("presensi",JSON.stringify(dataPresensi));
+    tampilkanPresensi();
+}
+
+function tampilkanPresensi(){
+    tabelPresensiTbody.innerHTML = "";
+
+    dataPresensi.forEach((p, i) => {
+        let kelasStatus = "";
+
+        if(p.status === "Hadir") kelasStatus = "status-hadir";
+        else if(p.status === "Izin") kelasStatus = "status-izin";
+        else if(p.status === "Sakit") kelasStatus = "status-sakit";
+
+        tabelPresensiTbody.innerHTML += `
+        <tr>
+            <td>${p.nama}</td>
+            <td>${p.kelas}</td>
+            <td>${p.tanggal}</td>
+            <td>
+                <span class="status ${kelasStatus}">
+                    ${p.status}
+                </span>
+            </td>
+            <td>
+                <button onclick="hapusPresensi(${i})">Hapus</button>
+            </td>
+        </tr>`;
+    });
+}
+
+
+function hapusPresensi(i){
+    dataPresensi.splice(i,1);
+    localStorage.setItem("presensi",JSON.stringify(dataPresensi));
+    tampilkanPresensi();
+}
+
+showPage("beranda");
+</script>
+
+</body>
+</html>
